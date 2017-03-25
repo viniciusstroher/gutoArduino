@@ -1,12 +1,19 @@
+
+
 #include <doxygen.h>
 #include <ESP8266.h>
 #include <aREST.h>
 
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <WiFiServer.h>
+#include <WiFiUdp.h>
 
 #define SSID "Venizao"       
 #define PASSWORD  "venizao123"
 
 ESP8266 wifi(Serial1);
+WiFiServer server(80);
 
 aREST rest = aREST();
 // Create an instance of the server
@@ -53,12 +60,13 @@ void setup()
           Serial.print("Join AP success\r\n");
           Serial.print("IP: ");       
           Serial.println(wifi.getLocalIP().c_str());
+          server.begin();
       } else {
           Serial.print("Join AP failure\r\n");
       }
       
       Serial.print("setup end\r\n");
-
+      
 }
 
 
@@ -80,6 +88,11 @@ void loop()
         } else {
           Serial.print("Join AP failure\r\n");
         }*/
+
+         WiFiClient client = server.available();
+         Serial.println("available "+client);
+         //rest.handle(client);
+         Serial.println("API OK");
 }
 
 int getTemperatura(String command) {
