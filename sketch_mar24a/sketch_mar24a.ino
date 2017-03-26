@@ -91,6 +91,8 @@ void loop(void)
             Serial.print((char)buffer[i]);
         }
         Serial.print("]\r\n");
+
+        //converter uint32_t -> char char ->uint32_t
         
         if(wifi.send(mux_id, buffer, len)) {
             Serial.print("send back ok\r\n");
