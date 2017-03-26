@@ -1,115 +1,116 @@
+/**
+ * @example HTTPGET.ino
+ * @brief The HTTPGET demo of library WeeESP8266. 
+ * @author Wu Pengfei<pengfei.wu@itead.cc> 
+ * @date 2015.03
+ * 
+ * @par Copyright:
+ * Copyright (c) 2015 ITEAD Intelligent Systems Co., Ltd. \n\n
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version. \n\n
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
+#include "ESP8266.h"
 
-#include <doxygen.h>
-#include <ESP8266.h>
-#include <aREST.h>
-
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WiFiServer.h>
-#include <WiFiUdp.h>
-
-#define SSID "Venizao"       
-#define PASSWORD  "venizao123"
+#define SSID        "Venizao"
+#define PASSWORD    "venizao123"
+#define HOST_NAME   "www.baidu.com"
+#define HOST_PORT   (80)
 
 ESP8266 wifi(Serial1);
-WiFiServer server(80);
 
-aREST rest = aREST();
-// Create an instance of the server
-
-
-// Variables to be exposed to the API
-int temperatura;
-int luminosidade;
-int pir;
-
-int getTemperatura(String command);
-int getLuminosidade(String command);
-int getPir(String command);
-
-
-
-void setup()
+void setup(void)
 {
-      Serial1.begin(115200);
-      Serial.begin(9600);
-      
-      temperatura = 24;
-      luminosidade = 40;
-      pir = 1;
-      rest.variable("temperatura",&temperatura);
-      rest.variable("luminosidade",&luminosidade);
-      rest.variable("pir",&pir);
-      
-      // Function to be exposed
-      rest.function("getTemperatura",getTemperatura);
-      rest.function("getLuminosidade",getLuminosidade);
-      rest.function("getPir",getPir);
+    Serial1.begin(115200);
+    Serial.begin(9600);
+    Serial.print("setup begin\r\n");
 
-      //rest.set_id("13");
-      //rest.set_name("esp8266");
+    Serial.print("FW Version:");
+    Serial.println(wifi.getVersion().c_str());
 
-      if (wifi.setOprToStation()) {
-          Serial.print("to station ok\r\n");
-      } else {
-          Serial.print("to station err\r\n");
-      }
-  
-      if (wifi.joinAP(SSID, PASSWORD)) {
-          Serial.print("Join AP success\r\n");
-          Serial.print("IP: ");       
-          Serial.println(wifi.getLocalIP().c_str());
-          server.begin();
-      } else {
-          Serial.print("Join AP failure\r\n");
-      }
-      
-      Serial.print("setup end\r\n");
-      
+    if (wifi.setOprToStationSoftAP()) {
+        Serial.print("to station + softap ok\r\n");
+    } else {
+        Serial.print("to station + softap err\r\n");
+    }
+
+    if (wifi.joinAP(SSID, PASSWORD)) {
+        Serial.print("Join AP success\r\n");
+
+        Serial.print("IP:");
+        Serial.println( wifi.getLocalIP().c_str());       
+    } else {
+        Serial.print("Join AP failure\r\n");
+    }
+    
+     if (wifi.enableMUX()) {
+        Serial.print("multiple ok\r\n");
+    } else {
+        Serial.print("multiple err\r\n");
+    }
+    
+    if (wifi.startTCPServer(8090)) {
+        Serial.print("start tcp server ok\r\n");
+    } else {
+        Serial.print("start tcp server err\r\n");
+    }
+    
+    if (wifi.setTCPServerTimeout(10)) { 
+        Serial.print("set tcp server timout 10 seconds\r\n");
+    } else {
+        Serial.print("set tcp server timout err\r\n");
+    }
+    
+    Serial.print("setup end\r\n");
+    Serial.print("setup end\r\n");
 }
-
-
-void loop()
+ 
+void loop(void)
 {
-        /*Serial.print("FW Version: ");
-        Serial.println(wifi.getVersion().c_str());
-        //no monitor usar 115000 para ver wifi
-        if (wifi.setOprToStation()) {
-          Serial.print("to station ok\r\n");
-        } else {
-          Serial.print("to station err\r\n");
+     uint8_t buffer[128] = {0};
+    uint8_t mux_id;
+    uint32_t len = wifi.recv(&mux_id, buffer, sizeof(buffer), 100);
+    if (len > 0) {
+        Serial.print("Status:[");
+        Serial.print(wifi.getIPStatus().c_str());
+        Serial.println("]");
+        
+        Serial.print("Received from :");
+        Serial.print(mux_id);
+        Serial.print("[");
+        for(uint32_t i = 0; i < len; i++) {
+            Serial.print((char)buffer[i]);
         }
-  
-        if (wifi.joinAP(SSID, PASSWORD)) {
-          Serial.print("Join AP success\r\n");
-          Serial.print("IP: ");       
-          Serial.println(wifi.getLocalIP().c_str());
+        Serial.print("]\r\n");
+        
+        if(wifi.send(mux_id, buffer, len)) {
+            Serial.print("send back ok\r\n");
         } else {
-          Serial.print("Join AP failure\r\n");
-        }*/
-
-         WiFiClient client = server.available();
-         Serial.println("available "+client);
-         //rest.handle(client);
-         Serial.println("API OK");
-}
-
-int getTemperatura(String command) {
-  // Get state from command
-  int state = command.toInt();
-  //digitalWrite(6,state);
-  return 1;
-}
-int getLuminosidade(String command) {
-  // Get state from command
-  int state = command.toInt();
-  //digitalWrite(6,state);
-  return 1;
-}
-int getPir(String command) {
-  // Get state from command
-  int state = command.toInt();
-  //digitalWrite(6,state);
-  return 1;
+            Serial.print("send back err\r\n");
+        }
+        
+        if (wifi.releaseTCP(mux_id)) {
+            Serial.print("release tcp ");
+            Serial.print(mux_id);
+            Serial.println(" ok");
+        } else {
+            Serial.print("release tcp");
+            Serial.print(mux_id);
+            Serial.println(" err");
+        }
+        
+        Serial.print("Status:[");
+        Serial.print(wifi.getIPStatus().c_str());
+        Serial.println("]");
+    }
+    
 }
