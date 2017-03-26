@@ -92,6 +92,8 @@ void loop(void)
         }
         Serial.print("]\r\n");
 
+
+        //pegar o buffer e converter para char e dps pegar as infos e dps converter para uint32
         //converter uint32_t -> char char ->uint32_t
         
         if(wifi.send(mux_id, buffer, len)) {
