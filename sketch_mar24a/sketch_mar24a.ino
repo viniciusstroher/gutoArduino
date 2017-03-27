@@ -66,15 +66,31 @@ void loop()
         Serial.println("]");
         
         
-        String str = (char*)buffer;
+        String str = (char*)buffer; 
         int corta1 = str.indexOf(" ");
         int corta2 = str.indexOf(" ",corta1+1);
-        String hook = str.substring(corta1,corta2);
+        String hook = str.substring(corta1+1,corta2);
         Serial.println("c1: "+((String)corta1)+" - c2 "+((String)corta2));
         Serial.println("hook: "+hook);
 
         /*DESENVOLVER PARA PEGAR PARAMETROS DEPOIS*/
-        
+        String apiRoot = "";
+        if(hook.equals("/")){
+           Serial.println("HOOK /");
+
+
+            String apiRoot = 
+                  String("HTTP/1.1 200 OK\r\n") +
+                  "Content-Type: application/json\r\n" +
+                  "Connection: close\r\n" +  // the connection will be closed after completion of the response
+                   // "Refresh: 5\r\n" +  // refresh the page automatically every 5 sec
+                  "\r\n" +
+                  "{retorno : true}"
+                  "\r\n";
+          
+           apiRoot.getBytes(buffer, apiRoot.length() + 1);
+           len = apiRoot.length();
+        }
         
         if(wifi.send(mux_id, buffer, len)) {
             Serial.print("send back ok\r\n");
