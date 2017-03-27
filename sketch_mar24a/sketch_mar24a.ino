@@ -1,38 +1,17 @@
-/**
- * @example HTTPGET.ino
- * @brief The HTTPGET demo of library WeeESP8266. 
- * @author Wu Pengfei<pengfei.wu@itead.cc> 
- * @date 2015.03
- * 
- * @par Copyright:
- * Copyright (c) 2015 ITEAD Intelligent Systems Co., Ltd. \n\n
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version. \n\n
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 #include "ESP8266.h"
 
-#define SSID        "Venizao"
+#define SSID        "Venizao" 
 #define PASSWORD    "venizao123"
 #define HOST_NAME   "www.baidu.com"
 #define HOST_PORT   (80)
 
 ESP8266 wifi(Serial1);
-
-void setup(void)
+ 
+void setup()
 {
     Serial1.begin(115200);
     Serial.begin(9600);
-    Serial.print("setup begin\r\n");
+    Serial.print("setup begin\r\n"); 
 
     Serial.print("FW Version:");
     Serial.println(wifi.getVersion().c_str());
@@ -71,30 +50,31 @@ void setup(void)
     }
     
     Serial.print("setup end\r\n");
-    Serial.print("setup end\r\n");
 }
  
-void loop(void)
+void loop()
 {
-     uint8_t buffer[128] = {0};
+    uint8_t buffer[128] = {0};
     uint8_t mux_id;
-    uint32_t len = wifi.recv(&mux_id, buffer, sizeof(buffer), 100);
+
+    //ESPERA RESPOSTA DO GET DO WIFI
+    uint32_t len = wifi.recv(&mux_id, buffer, sizeof(buffer), 200);
+    
     if (len > 0) {
         Serial.print("Status:[");
         Serial.print(wifi.getIPStatus().c_str());
         Serial.println("]");
         
-        Serial.print("Received from :");
-        Serial.print(mux_id);
-        Serial.print("[");
-        for(uint32_t i = 0; i < len; i++) {
-            Serial.print((char)buffer[i]);
-        }
-        Serial.print("]\r\n");
+        
+        String str = (char*)buffer;
+        int corta1 = str.indexOf(" ");
+        int corta2 = str.indexOf(" ",corta1+1);
+        String hook = str.substring(corta1,corta2);
+        Serial.println("c1: "+((String)corta1)+" - c2 "+((String)corta2));
+        Serial.println("hook: "+hook);
 
-
-        //pegar o buffer e converter para char e dps pegar as infos e dps converter para uint32
-        //converter uint32_t -> char char ->uint32_t
+        /*DESENVOLVER PARA PEGAR PARAMETROS DEPOIS*/
+        
         
         if(wifi.send(mux_id, buffer, len)) {
             Serial.print("send back ok\r\n");
@@ -111,10 +91,7 @@ void loop(void)
             Serial.print(mux_id);
             Serial.println(" err");
         }
-        
-        Serial.print("Status:[");
-        Serial.print(wifi.getIPStatus().c_str());
-        Serial.println("]");
+
     }
     
 }
