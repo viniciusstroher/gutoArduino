@@ -91,6 +91,27 @@ void loop()
            apiRoot.getBytes(buffer, apiRoot.length() + 1);
            len = apiRoot.length();
         }
+
+        if(hook.equals("/temperatura")){
+           Serial.println("HOOK /temperatura");
+
+            const int LM35 = A0; // Define o pino que lera a saída do LM35
+            float temperatura;
+            temperatura =   (LM35 * 500) / 1023;
+            String apiRoot = 
+                  String("HTTP/1.1 200 OK\r\n") +
+                  "Content-Type: application/json\r\n" +
+                  "Connection: close\r\n" +  // the connection will be closed after completion of the response
+                   // "Refresh: 5\r\n" +  // refresh the page automatically every 5 sec
+                  "\r\n" +
+                  "{temperatura : "+temperatura+"}"
+                  "\r\n";
+          
+           apiRoot.getBytes(buffer, apiRoot.length() + 1);
+           len = apiRoot.length();
+           delay(2000);
+        }
+ 
         
         if(wifi.send(mux_id, buffer, len)) {
             Serial.print("send back ok\r\n");
