@@ -97,7 +97,12 @@ void loop()
 
             const int LM35 = A0; // Define o pino que lera a saída do LM35
             float temperatura;
-            temperatura =   (LM35 * 500) / 1023;
+            
+            
+           
+            
+            temperatura = (float(analogRead(LM35))*5/(1023))/0.01;;
+
             String apiRoot = 
                   String("HTTP/1.1 200 OK\r\n") +
                   "Content-Type: application/json\r\n" +
